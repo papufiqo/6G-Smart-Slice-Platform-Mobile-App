@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>6G Smart Slice - Mobile</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --accent: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            max-width: 100vw;
+            overflow-x: hidden;
+        }
+        
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        /* Header Styles */
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .logo h1 {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .logo-icon {
+            font-size: 1.5rem;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 0.8rem;
+        }
+        
+        .header-action-btn {
+            background: rgba(255, 255, 255, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            color: white;
+        }
+        
+        /* Bottom Navigation */
+        .bottom-nav {
+            background-color: white;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-around;
+            padding: 0.5rem;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #777;
+            padding: 0.5rem;
+            font-size: 0.7rem;
+            flex: 1;
+        }
+        
+        .nav-item.active {
+            color: var(--secondary);
+        }
+        
+        .nav-icon {
+            font-size: 1.2rem;
+            margin-bottom: 0.2rem;
+        }
+        
+        /* Main Content */
+        .main-content {
+            padding: 1rem;
+            padding-bottom: 70px; /* Space for bottom nav */
+        }
+        
+        .section-title {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: var(--dark);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .view-all {
+            font-size: 0.8rem;
+            color: var(--secondary);
+            text-decoration: none;
+        }
+        
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .stat-card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .stat-title {
+            font-size: 0.9rem;
+            color: #777;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-change {
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        
+        .positive {
+            color: var(--success);
+        }
+        
+        .negative {
+            color: var(--danger);
+        }
+        
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #f0f5ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--secondary);
+            font-size: 1.2rem;
+        }
+        
+        /* Chart Container */
+        .chart-container {
+            height: 200px;
+            margin-top: 1rem;
+        }
+        
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        
+        .tabs::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .tab {
+            padding: 0.7rem 1.2rem;
+            border-radius: 20px;
+            background-color: white;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+        }
+        
+        .tab.active {
+            background-color: var(--secondary);
+            color: white;
+        }
+        
+        /* Data Cards */
+        .data-card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .data-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .data-card-title {
+            font-size: 1rem;
+            color: var(--dark);
+        }
+        
+        .data-list {
+            list-style: none;
+        }
+        
+        .data-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .data-item:last-child {
+            border-bottom: none;
+        }
+        
+        .data-label {
+            font-size: 0.9rem;
+            color: #777;
+        }
+        
+        .data-value {
+            font-weight: 500;
+        }
+        
+        .status {
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+        
+        .status-active {
+            background-color: #e6f7ee;
+            color: var(--success);
+        }
+        
+        .status-pending {
+            background-color: #fef5e6;
+            color: var(--warning);
+        }
+        
+        /* Slice Configurator */
+        .configurator {
+            background-color: white;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .configurator-header {
+            margin-bottom: 1.5rem;
+        }
+        
+        .configurator-title {
+            font-size: 1.1rem;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+        }
+        
+        .configurator-description {
+            font-size: 0.9rem;
+            color: #777;
+        }
+        
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        
+        .form-input, .form-select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        
+        .slider-container {
+            margin-top: 0.5rem;
+        }
+        
+        .slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 5px;
+            border-radius: 5px;
+            background: #d3d3d3;
+            outline: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--secondary);
+            cursor: pointer;
+        }
+        
+        .slider-values {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: #777;
+            margin-top: 0.5rem;
+        }
+        
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 1rem;
+            width: 100%;
+            margin-top: 0.5rem;
+        }
+        
+        .btn-primary {
+            background-color: var(--secondary);
+            color: white;
+        }
+        
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--secondary);
+            color: var(--secondary);
+        }
+        
+        /* API Console */
+        .api-console {
+            background-color: white;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .api-endpoints {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .api-endpoint {
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 1rem;
+        }
+        
+        .api-method {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        
+        .get {
+            background-color: #e6f7ee;
+            color: var(--success);
+        }
+        
+        .post {
+            background-color: #f0f5ff;
+            color: var(--secondary);
+        }
+        
+        .api-url {
+            font-family: monospace;
+            font-size: 0.8rem;
+            margin-bottom: 0.5rem;
+            word-break: break-all;
+        }
+        
+        .api-description {
+            font-size: 0.8rem;
+            color: #777;
+        }
+        
+        /* Swipeable Views */
+        .swipe-views {
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        
+        .swipe-views::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .swipe-view {
+            scroll-snap-align: start;
+            min-width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon"><i class="fas fa-satellite-dish"></i></div>
+                <h1>6G Slice</h1>
+            </div>
+            <div class="header-actions">
+                <button class="header-action-btn"><i class="fas fa-search"></i></button>
+                <button class="header-action-btn"><i class="fas fa-bell"></i></button>
+                <button class="header-action-btn"><i class="fas fa-user"></i></button>
+            </div>
+        </header>
+        
+        <main class="main-content">
+            <div class="swipe-views">
+                <div class="swipe-view">
+                    <div class="section-title">
+                        <h2>Dashboard</h2>
+                        <a href="#" class="view-all">View All</a>
+                    </div>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <div class="stat-title">Revenue</div>
+                                <div class="stat-icon"><i class="fas fa-dollar-sign"></i></div>
+                            </div>
+                            <div class="stat-value">$2.8M</div>
+                            <div class="stat-change positive">
+                                <i class="fas fa-arrow-up"></i> 12.5%
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="revenueChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <div class="stat-title">Active Slices</div>
+                                <div class="stat-icon"><i class="fas fa-link"></i></div>
+                            </div>
+                            <div class="stat-value">1,243</div>
+                            <div class="stat-change positive">
+                                <i class="fas fa-arrow-up"></i> 8.2%
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="slicesChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="section-title">
+                        <h2>Vertical Performance</h2>
+                    </div>
+                    
+                    <div class="tabs">
+                        <div class="tab active">All</div>
+                        <div class="tab">Healthcare</div>
+                        <div class="tab">Manufacturing</div>
+                        <div class="tab">Transportation</div>
+                        <div class="tab">Energy</div>
+                        <div class="tab">Media</div>
+                    </div>
+                    
+                    <div class="data-card">
+                        <div class="data-card-header">
+                            <div class="data-card-title">Vertical Distribution</div>
+                        </div>
+                        <ul class="data-list">
+                            <li class="data-item">
+                                <span class="data-label">Healthcare</span>
+                                <div>
+                                    <span class="data-value">412</span>
+                                    <span class="status status-active">Active</span>
+                                </div>
+                            </li>
+                            <li class="data-item">
+                                <span class="data-label">Manufacturing</span>
+                                <div>
+                                    <span class="data-value">387</span>
+                                    <span class="status status-active">Active</span>
+                                </div>
+                            </li>
+                            <li class="data-item">
+                                <span class="data-label">Transportation</span>
+                                <div>
+                                    <span class="data-value">215</span>
+                                    <span class="status status-active">Active</span>
+                                </div>
+                            </li>
+                            <li class="data-item">
+                                <span class="data-label">Energy</span>
+                                <div>
+                                    <span class="data-value">129</span>
+                                    <span class="status status-pending">Pending</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="swipe-view">
+                    <div class="section-title">
+                        <h2>Slice Management</h2>
+                    </div>
+                    
+                    <div class="configurator">
+                        <div class="configurator-header">
+                            <div class="configurator-title">Create New Slice</div>
+                            <div class="configurator-description">Configure a network slice for your customer's requirements</div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Slice Name</label>
+                            <input type="text" class="form-input" placeholder="Emergency-Services-Slice">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Customer</label>
+                            <select class="form-select">
+                                <option>Select a customer</option>
+                                <option>City General Hospital</option>
+                                <option>AutoManufacture Inc</option>
+                                <option>Metro Transit Authority</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Industry Vertical</label>
+                            <select class="form-select">
+                                <option>Select a vertical</option>
+                                <option>Healthcare</option>
+                                <option>Manufacturing</option>
+                                <option>Transportation</option>
+                                <option>Energy</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Bandwidth</label>
+                            <input type="range" min="10" max="1000" value="100" class="slider" id="bandwidthSlider">
+                            <div class="slider-values">
+                                <span>10 Mbps</span>
+                                <span id="bandwidthValue">100 Mbps</span>
+                                <span>1000 Mbps</span>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Latency</label>
+                            <input type="range" min="1" max="100" value="10" class="slider" id="latencySlider">
+                            <div class="slider-values">
+                                <span>1 ms</span>
+                                <span id="latencyValue">10 ms</span>
+                                <span>100 ms</span>
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-primary">Deploy Slice</button>
+                        <button class="btn btn-outline">Save as Template</button>
+                    </div>
+                </div>
+                
+                <div class="swipe-view">
+                    <div class="section-title">
+                        <h2>API Management</h2>
+                    </div>
+                    
+                    <div class="api-console">
+                        <div class="api-endpoints">
+                            <div class="api-endpoint">
+                                <div class="api-method get">GET</div>
+                                <div class="api-url">/api/v1/slices</div>
+                                <div class="api-description">Retrieve all network slices</div>
+                            </div>
+                            
+                            <div class="api-endpoint">
+                                <div class="api-method post">POST</div>
+                                <div class="api-url">/api/v1/slices</div>
+                                <div class="api-description">Create a new network slice</div>
+                            </div>
+                            
+                            <div class="api-endpoint">
+                                <div class="api-method get">GET</div>
+                                <div class="api-url">/api/v1/slices/{id}</div>
+                                <div class="api-description">Retrieve a specific slice</div>
+                            </div>
+                            
+                            <div class="api-endpoint">
+                                <div class="api-method post">POST</div>
+                                <div class="api-url">/api/v1/slices/{id}/monitor</div>
+                                <div class="api-description">Monitor slice performance</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="data-card">
+                        <div class="data-card-header">
+                            <div class="data-card-title">API Performance</div>
+                        </div>
+                        <ul class="data-list">
+                            <li class="data-item">
+                                <span class="data-label">Availability</span>
+                                <span class="data-value">99.92%</span>
+                            </li>
+                            <li class="data-item">
+                                <span class="data-label">Avg. Response Time</span>
+                                <span class="data-value">42ms</span>
+                            </li>
+                            <li class="data-item">
+                                <span class="data-label">Total Calls</span>
+                                <span class="data-value">12.4M</span>
+                            </li>
+                            <li class="data-item">
+                                <span class="data-label">Error Rate</span>
+                                <span class="data-value">0.08%</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <nav class="bottom-nav">
+            <a href="#" class="nav-item active">
+                <i class="fas fa-th-large nav-icon"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-network-wired nav-icon"></i>
+                <span>Slices</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-code nav-icon"></i>
+                <span>APIs</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-chart-line nav-icon"></i>
+                <span>Analytics</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-cog nav-icon"></i>
+                <span>Settings</span>
+            </a>
+        </nav>
+    </div>
+
+    <script>
+        // Initialize charts
+        document.addEventListener('DOMContentLoaded', function() {
+            // Revenue Chart
+            const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+            const revenueChart = new Chart(revenueCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'],
+                    datasets: [{
+                        label: 'Revenue (in millions $)',
+                        data: [1.8, 2.1, 1.9, 2.3, 2.5, 2.2, 2.6, 2.7, 2.5, 2.8],
+                        borderColor: '#3498db',
+                        tension: 0.3,
+                        fill: true,
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            display: false,
+                            beginAtZero: true
+                        },
+                        x: {
+                            display: false
+                        }
+                    }
+                }
+            });
+            
+            // Slices Chart
+            const slicesCtx = document.getElementById('slicesChart').getContext('2d');
+            const slicesChart = new Chart(slicesCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Healthcare', 'Manufacturing', 'Transportation', 'Energy', 'Media'],
+                    datasets: [{
+                        data: [412, 387, 215, 129, 98],
+                        backgroundColor: [
+                            'rgba(46, 204, 113, 0.7)',
+                            'rgba(52, 152, 219, 0.7)',
+                            'rgba(155, 89, 182, 0.7)',
+                            'rgba(243, 156, 18, 0.7)',
+                            'rgba(231, 76, 60, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgb(46, 204, 113)',
+                            'rgb(52, 152, 219)',
+                            'rgb(155, 89, 182)',
+                            'rgb(243, 156, 18)',
+                            'rgb(231, 76, 60)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+            
+            // Slider value updates
+            const bandwidthSlider = document.getElementById('bandwidthSlider');
+            const bandwidthValue = document.getElementById('bandwidthValue');
+            bandwidthSlider.addEventListener('input', function() {
+                bandwidthValue.textContent = this.value + ' Mbps';
+            });
+            
+            const latencySlider = document.getElementById('latencySlider');
+            const latencyValue = document.getElementById('latencyValue');
+            latencySlider.addEventListener('input', function() {
+                latencyValue.textContent = this.value + ' ms';
+            });
+            
+            // Tab functionality
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            
+            // Bottom nav functionality
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    navItems.forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            
+            // Swipe views functionality
+            let touchStartX = 0;
+            let touchEndX = 0;
+            const swipeViews = document.querySelector('.swipe-views');
+            
+            swipeViews.addEventListener('touchstart', e => {
+                touchStartX = e.changedTouches[0].screenX;
+            });
+            
+            swipeViews.addEventListener('touchend', e => {
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipe();
+            });
+            
+            function handleSwipe() {
+                const diff = touchEndX - touchStartX;
+                // Minimum swipe distance
+                if (Math.abs(diff) > 50) {
+                    if (diff > 0) {
+                        // Swipe right - previous view
+                        swipeViews.scrollBy({ left: -swipeViews.offsetWidth, behavior: 'smooth' });
+                    } else {
+                        // Swipe left - next view
+                        swipeViews.scrollBy({ left: swipeViews.offsetWidth, behavior: 'smooth' });
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
